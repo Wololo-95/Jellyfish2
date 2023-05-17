@@ -22,42 +22,19 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Check for updates:
 print("Checking for updates...")
+# initialize a GitPython Repo object for the current working directory
 repo = git.Repo('.')
 
 # check if there are any changes on the remote branch
 if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
+    print("Update found, applying...")
+    # discard local changes
+    repo.git.reset('--hard')
+
     # pull changes from the remote branch
     repo.remotes.origin.pull()
-
-# Location of the version file
-VERSION_FILE = 'version.txt'
-
-# URL of the Github repository
-REPO_URL = 'https://github.com/Wololo-95/Jellyfish2.git'
-
-# Get the current version of the code
-with open(VERSION_FILE, 'r') as f:
-    current_version = f.read().strip()
-
-# Get the latest version from Github
-response = requests.get(REPO_URL + '/raw/master/version.txt')
-latest_version = response.text.strip()
-
-# If the versions are different, update and restart
-if latest_version != current_version:
-    print("New version found. Pulling update from Github.")
-    # Fetch the latest code from Github
-    subprocess.run(['git', 'pull', REPO_URL])
-
-    # Update the version file
-    with open(VERSION_FILE, 'w') as f:
-        f.write(latest_version)
-
-    # Restart the bot with the updated code
-    print("Update complete. Restarting.")
-    python = sys.executable
-    subprocess.run([python, 'main.py'])
-
+else:
+    print("Version already up to date. Continuing...")
 
 clean = os.listdir(".")
 print("Initiating cleanup check...")
