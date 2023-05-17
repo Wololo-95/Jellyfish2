@@ -207,15 +207,29 @@ async def resume(ctx):
 
 @client.command()
 # Manual update command
-async def update(ctx):
-    # Check for updates and restart the bot
-    
-    # Fetch the latest code from Github
-    subprocess.run(["https://github.com/Wololo-95/Jellyfish2.git", "pull"])
-    
-    # Restart the bot with the updated code
-    python = sys.executable
-    subprocess.run([python, "main.py"])
+async def devupdate(ctx):
+    # Check for updates:
+    print(f"MANUAL UPDATE REQUESTED BY: {ctx.author}...")
+    await ctx.send(f"--Manual Update requested by {ctx.author}.\n\nSearching for updates...")
+    # initialize a GitPython Repo object for the current working directory
+    repo = git.Repo('.')
+
+    # check if there are any changes on the remote branch
+    if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
+        print("Update found, applying...")
+        await ctx.send(f"Update found, applying.")
+        # discard local changes
+        repo.git.reset('--hard')
+        await ctx.send(f"Update applied. Restarting, please wait.")
+
+        # pull changes from the remote branch
+        repo.remotes.origin.pull()
+        # Restart the bot with the updated code
+        python = sys.executable
+        subprocess.run([python, "main.py"])
+    else:
+        print("Version already up to date. Continuing...")
+        await ctx.send(f"Version already up to date. No updates are required at this time.")
 
 # Start the bot
 client.run(str(TOKEN))
