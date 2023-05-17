@@ -10,6 +10,7 @@ import sys
 import time
 import requests
 import openai
+import git
 
 '''
 Jellyfish 2: A music-centered discord bot
@@ -21,6 +22,12 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Check for updates:
 print("Checking for updates...")
+repo = git.Repo('.')
+
+# check if there are any changes on the remote branch
+if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
+    # pull changes from the remote branch
+    repo.remotes.origin.pull()
 
 # Location of the version file
 VERSION_FILE = 'version.txt'
@@ -234,4 +241,4 @@ async def update(ctx):
     subprocess.run([python, "main.py"])
 
 # Start the bot
-client.run(TOKEN)
+client.run(str(TOKEN))
