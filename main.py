@@ -5,14 +5,51 @@ from discord.ext import commands
 from discord.utils import get
 from pytube import YouTube
 import os
+import subprocess
+import sys
 import time
+import requests
 import openai
 
+'''
+Jellyfish 2: A music-centered discord bot
+https://github.com/Wololo-95/Jellyfish2.git
+'''
+
 # Retrieve Discord Token
-token = os.getenv('DISCORD_TOKEN')
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Check for updates:
 print("Checking for updates...")
+
+# Location of the version file
+VERSION_FILE = 'version.txt'
+
+# URL of the Github repository
+REPO_URL = 'https://github.com/Wololo-95/Jellyfish2.git'
+
+# Get the current version of the code
+with open(VERSION_FILE, 'r') as f:
+    current_version = f.read().strip()
+
+# Get the latest version from Github
+response = requests.get(REPO_URL + '/raw/master/version.txt')
+latest_version = response.text.strip()
+
+# If the versions are different, update and restart
+if latest_version != current_version:
+    print("New version found. Pulling update from Github.")
+    # Fetch the latest code from Github
+    subprocess.run(['git', 'pull', REPO_URL])
+
+    # Update the version file
+    with open(VERSION_FILE, 'w') as f:
+        f.write(latest_version)
+
+    # Restart the bot with the updated code
+    print("Update complete. Restarting.")
+    python = sys.executable
+    subprocess.run([python, 'main.py'])
 
 
 clean = os.listdir(".")
@@ -27,7 +64,7 @@ for item in clean:
         os.remove(item)
 print(f"Cleanup complete, {clean_no} items successfully removed.")
 
-openai.api_key = "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"
+openai.api_key = "OPEN_AI_TOKEN"
 
 # Create a new Discord client instance
 intents = discord.Intents.default()
@@ -38,6 +75,7 @@ client = commands.Bot(command_prefix='!', intents=intents)
 @client.event
 async def on_ready():
     print('Jellyfish 2, up and running! Or... swimming. Gliding?')
+
 
 @client.command() # Test command
 async def ping(ctx):
@@ -183,5 +221,17 @@ async def resume(ctx):
     else:
         await ctx.send("Can not resume playback; nothing is paused.")
 
+@client.command()
+# Manual update command
+async def update(ctx):
+    # Check for updates and restart the bot
+    
+    # Fetch the latest code from Github
+    subprocess.run(["https://github.com/Wololo-95/Jellyfish2.git", "pull"])
+    
+    # Restart the bot with the updated code
+    python = sys.executable
+    subprocess.run([python, "main.py"])
+
 # Start the bot
-client.run(token)
+client.run(TOKEN)
