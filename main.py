@@ -1,9 +1,5 @@
 import discord
-from youtubesearchpython import Search
 import asyncio
-from discord.ext import commands
-from discord.utils import get
-from pytube import YouTube
 import os
 import subprocess
 import sys
@@ -11,6 +7,12 @@ import time
 import requests
 import openai
 import git
+from bs4 import BeautifulSoup
+from urllib.parse import quote
+from youtubesearchpython import Search
+from discord.ext import commands
+from discord.utils import get
+from pytube import YouTube
 
 '''
 Jellyfish 2: A music-centered discord bot
@@ -232,6 +234,18 @@ async def resume(ctx):
         await ctx.send("Playback resumed.")
     else:
         await ctx.send("Can not resume playback; nothing is paused.")
+
+@client.command()
+async def volume(ctx, vol: int):
+    if ctx.voice_client:
+        if 0 <= vol <= 100:
+            ctx.voice_client.source.volume = vol / 100
+            await ctx.send(f"Volume set to {vol}%")
+        else:
+            await ctx.send("Volume should be between 0 and 100")
+    else:
+        await ctx.send("I am not connected to a voice channel.")
+
 
 @client.command()
 # Manual update command
