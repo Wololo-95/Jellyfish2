@@ -16,6 +16,7 @@ import git
 Jellyfish 2: A music-centered discord bot
 https://github.com/Wololo-95/Jellyfish2.git
 '''
+debug = False
 
 # Retrieve Discord Token
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -67,15 +68,25 @@ async def ping(ctx):
 
 @client.command()
 async def play(ctx, *args: str):
+    global debug
+
     query = ' '.join(args)
+
+    if debug == True:
+        await ctx.send(f"[Debug] Query received: {query} | async def play(crx, *args: str)")
     
     voice_channel = ctx.author.voice.channel # Define user voice channel as the target destination
 
     if ctx.voice_client is None:
         voice_client = await voice_channel.connect()
+        if debug == True:
+            await ctx.send(f"[Debug] User {ctx.author} not in voice channel. | voice_client = await voice_channel.connect()")
+        
         # If the author is not in the voice channel, await connection
     else:
         voice_client = ctx.voice_client # Establish connection with the voice client
+        if debug == True:
+            await ctx.send(f"[Debug] Joining same channel as command issuer {ctx.author} | voice_client = ctx.voice_client")
 
     if ctx.voice_client.is_playing():
         # Add the requested song to the queue
@@ -91,13 +102,24 @@ async def play(ctx, *args: str):
                 video_id = query.split('v=')[1].split('&')[0]
             else:
                 video_id = query.split('/')[-1]
+
+            if debug == True:
+                await ctx.send(f"[Debug] YouTube direct link received with video id {video_id} | video_id = query.split('v=')[1].split('&')[0]")
             
             # Use the YouTube function to get the video information
             yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
+
+            if debug == True:
+                await ctx.send(f"[Debug] Query: https://www.youtube.com/watch?v={video_id} | yt = YouTube(f'https://www.youtube.com/watch?v={video_id}'")
+
             await ctx.send(f"Attempting to play {yt.title} \nFrom https://www.youtube.com/watch?v={video_id}")
             print(f"Attempting to play {yt.title} \nFrom https://www.youtube.com/watch?v={video_id}")
+
         else:
             search = Search(query, limit=1)
+
+            if debug == True:
+                await ctx.send(f"[Debug] Received non-direct query; searching YouTube for {query}, Search(query, limit=1)")
 
             if search.result():
                 # Extract the video link from the search result dictionary
@@ -116,6 +138,9 @@ async def play(ctx, *args: str):
         audio.download(output_path=".", filename=audio_file) # Tells script where to load files to, and names it as the title of the video
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file)) # Creates a source for discord to load the audio information
+
+        if debug == True:
+            await ctx.send(f"[Debug] source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(audio_file))")
 
         voice_client.play(source) # Tells voice client to play the audio located within the source
 
@@ -142,9 +167,12 @@ async def play(ctx, *args: str):
   
 @client.command()
 async def next(ctx):
+    global debug
     print(f"Next command issued by user {ctx.author}")
     # Check if there are any songs in the queue
     if song_queue:
+        if debug == True:
+            await ctx.send(f"First song in queue = {song_queue[0]}; Popping first item in list, awaiting play(ctx, next_song)")
         # stops the current song
         ctx.voice_client.stop()
         next_song = song_queue.pop(0)
@@ -230,6 +258,15 @@ async def devupdate(ctx):
     else:
         print("Version already up to date. Continuing...")
         await ctx.send(f"Version already up to date. No updates are required at this time.")
+
+@client.command()
+async def debugging(ctx):
+    global debug
+    if debug == False:
+        debug = True
+        await ctx.send(f"DEBUGGING MODE ENABLED --- MAY BREAK COMMANDS --- DISABLE WITH !debugging")
+    else:
+        debug = False
 
 # Start the bot
 client.run(str(TOKEN))
