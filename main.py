@@ -4,10 +4,10 @@ import os
 import subprocess
 import sys
 import time
-import requests
 import openai
 import git
-from bs4 import BeautifulSoup
+import psutil
+import threading
 from urllib.parse import quote
 from youtubesearchpython import Search
 from discord.ext import commands
@@ -18,40 +18,44 @@ from pytube import YouTube
 Jellyfish 2: A music-centered discord bot
 https://github.com/Wololo-95/Jellyfish2.git
 '''
+# Globals
 debug = False
-
-# Retrieve Discord Token
-TOKEN = os.getenv('DISCORD_TOKEN')
-
-# Check for updates:
-print("Checking for updates...")
-# initialize a GitPython Repo object for the current working directory
-repo = git.Repo('.')
-
-# check if there are any changes on the remote branch
-if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
-    print("Update found, applying...")
-    # discard local changes
-    repo.git.reset('--hard')
-
-    # pull changes from the remote branch
-    repo.remotes.origin.pull()
-else:
-    print("Version already up to date. Continuing...")
-
-clean = os.listdir(".")
-print("Initiating cleanup check...")
-clean_no = 0
+ram_warning = False
 song_queue = []
 
-for item in clean:
-    if item.endswith(".mp3") or item.endswith(".mp4"):
-        clean_no += 1
-        print(f"File: {item} removed.")
-        os.remove(item)
-print(f"Cleanup complete, {clean_no} items successfully removed.")
-
+# Retrieve Tokens
+TOKEN = os.getenv('DISCORD_TOKEN')
 openai.api_key = "OPEN_AI_TOKEN"
+
+def update_check():
+    # initialize a GitPython Repo object for the current working directory
+    repo = git.Repo('.')
+    # check if there are any changes on the remote branch
+    if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
+        print("Update found, applying...")
+        # discard local changes
+        repo.git.reset('--hard')
+
+        # pull changes from the remote branch
+        repo.remotes.origin.pull()
+    else:
+        print("Version already up to date. Continuing...")
+
+def sys_clean():
+    clean = os.listdir(".")
+    print("Initiating cleanup check...")
+    clean_no = 0
+    for item in clean:
+        if item.endswith(".mp3") or item.endswith(".mp4"):
+            clean_no += 1
+            print(f"File: {item} removed.")
+            os.remove(item)
+    print(f"Cleanup complete, {clean_no} items successfully removed.")
+
+print("Checking for updates...")
+update_check()
+print("Attempting to clean operational directory...")
+sys_clean()
 
 # Create a new Discord client instance
 intents = discord.Intents.default()
@@ -62,11 +66,6 @@ client = commands.Bot(command_prefix='!', intents=intents)
 @client.event
 async def on_ready():
     print('Jellyfish 2, up and running! Or... swimming. Gliding?')
-
-
-@client.command() # Test command
-async def ping(ctx):
-    await ctx.send('Pong!')
 
 @client.command()
 async def play(ctx, *args: str):
@@ -246,7 +245,6 @@ async def volume(ctx, vol: int):
     else:
         await ctx.send("I am not connected to a voice channel.")
 
-
 @client.command()
 # Manual update command
 async def devupdate(ctx):
@@ -281,6 +279,34 @@ async def debugging(ctx):
         await ctx.send(f"DEBUGGING MODE ENABLED --- MAY BREAK COMMANDS --- DISABLE WITH !debugging")
     else:
         debug = False
+
+def monitor_ram_usage():
+    check_no = 0
+    process = psutil.Process()
+    warning_threshold_mb = 1000
+    ANSI_RED = "\033[91m"
+
+    while True:
+        check_no += 1
+        print(f"\nRunning System util check - RAM || Check number: {check_no}\n")
+        # Get the current RAM usage
+        ram_info = process.memory_info()
+        ram_used_mb = ram_info.rss / 1024 / 1024
+
+        # Print the RAM usage
+        print(f"RAM usage: ({ram_used_mb:.2f} MB)\n")
+
+        # Check if RAM usage is close to the warning threshold
+        if ram_used_mb >= warning_threshold_mb - 250:
+            print(ANSI_RED + "CRITICAL WARNING: RAM usage approaching maximum cap; advising to avoid issuing further commands." + "\033[0m")
+        else:
+            print("RAM usage within acceptable thresholds...")
+
+        # Sleep for a specific duration (e.g., 10 seconds)
+        time.sleep(30)
+
+ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
+ram_monitor_thread.start()
 
 # Start the bot
 client.run(str(TOKEN))
