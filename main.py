@@ -283,7 +283,7 @@ async def devupdate(ctx):
 
         # pull changes from the remote branch
         repo.remotes.origin.pull()
-        
+        time.sleep(8)
         # Restart the bot with the updated code
         python = sys.executable
         subprocess.run([python, "main.py"])
