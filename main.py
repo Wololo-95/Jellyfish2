@@ -22,7 +22,6 @@ https://github.com/Wololo-95/Jellyfish2.git
 
 # Globals
 debug = False
-ram_warning = False
 song_queue = []
 
 # Retrieve Tokens
@@ -121,8 +120,7 @@ async def play(ctx, *args: str):
 
             if debug == True:
                 await ctx.send(f"[Debug] YouTube direct link received with video id {video_id} | video_id = query.split('v=')[1].split('&')[0]")
-            
-            # Use the YouTube function to get the video information
+
             yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
 
             if debug == True:
@@ -189,7 +187,7 @@ async def next(ctx):
     if song_queue:
         if debug == True:
             await ctx.send(f"First song in queue = {song_queue[0]}; Popping first item in list, awaiting play(ctx, next_song)")
-        # stops the current song
+        # stops the current song, pops the first song in the list from the queue
         ctx.voice_client.stop()
         next_song = song_queue.pop(0)
         await play(ctx, next_song)
@@ -214,7 +212,7 @@ async def jellyhelp(ctx):
 async def jellyfish(message):
     if message.author == client.user:
         return
-    print("Prompt received.") # currently not operational; will repair
+    print("Prompt received.") # currently not operational; will eventually provide digital assistance
     response = openai.Completion.create(
         engine="gpt-3.5-turbo",
         prompt=message.content,
@@ -261,7 +259,6 @@ async def volume(ctx, vol: int):
         await ctx.send("I am not connected to a voice channel.")
 
 @client.command()
-# Manual update command
 async def devupdate(ctx):
     # Check for updates:
     print(f"MANUAL UPDATE REQUESTED BY: {ctx.author}...")
@@ -319,18 +316,15 @@ def monitor_ram_usage():
         # Get the current RAM usage
         ram_info = process.memory_info()
         ram_used_mb = ram_info.rss / 1024 / 1024
-
-        # Print the RAM usage
-
         print(f"RAM usage: ({ram_used_mb:.2f} MB)\n")
 
         # Check if RAM usage is close to the warning threshold
-        if ram_used_mb >= warning_threshold_mb - 250:
+        if ram_used_mb >= warning_threshold_mb - 200:
             print(ANSI_RED + "CRITICAL WARNING: RAM usage approaching maximum cap; advising to avoid issuing further commands." + "\033[0m")
         else:
             print("RAM usage within acceptable thresholds...")
 
-        # Sleep for a specific duration
+        # Sleep for a specific duration; this sets the intervals in which the bot will check ram usage and report uptime (in seconds)
         time.sleep(300)
 
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
