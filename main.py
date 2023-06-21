@@ -40,6 +40,11 @@ def update_check():
 
         # pull changes from the remote branch
         repo.remotes.origin.pull()
+
+        # get the latest commit
+        latest_commit = repo.head.commit
+        commit_description = latest_commit.message
+        print("Latest commit description:", commit_description)
     else:
         print("Version already up to date. Continuing...")
 
@@ -268,12 +273,19 @@ async def devupdate(ctx):
     if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
         print("Update found, applying...")
         await ctx.send(f"Update found, applying.")
+
+        # get the latest commit
+        latest_commit = repo.head.commit
+        commit_description = latest_commit.message
+        print("Latest commit description:", commit_description)
+        
         # discard local changes
         repo.git.reset('--hard')
         await ctx.send(f"Update applied. Restarting, please wait.")
 
         # pull changes from the remote branch
         repo.remotes.origin.pull()
+        
         # Restart the bot with the updated code
         python = sys.executable
         subprocess.run([python, "main.py"])
