@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import time
+from datetime import timedelta
 import openai
 import git
 import psutil
@@ -18,6 +19,7 @@ from pytube import YouTube
 Jellyfish 2: A music-centered discord bot
 https://github.com/Wololo-95/Jellyfish2.git
 '''
+
 # Globals
 debug = False
 ram_warning = False
@@ -56,6 +58,14 @@ print("Checking for updates...")
 update_check()
 print("Attempting to clean operational directory...")
 sys_clean()
+
+def get_time_hh_mm_ss(sec):
+    # create timedelta and convert it into string
+    td_str = str(timedelta(seconds=sec))
+
+    # split string into individual component
+    x = td_str.split(':')
+    print('Jellyfish 2 | Uptime Report: ', x[0], 'Hours', x[1], 'Minutes', x[2], 'Seconds')
 
 # Create a new Discord client instance
 intents = discord.Intents.default()
@@ -193,7 +203,7 @@ async def stop(ctx):
 
 @client.command()
 async def jellyhelp(ctx):
-    await ctx.send(f"Hey there {ctx.author}, I am Jellyfish 2!\n\nI can currently do the following:\n!play 'query' -- search and play a song from YouTube; spotify compatibility is under construction. Also used to add songs to queue.\n!stop -- stops whatever is currently playing, and exit the voice channel.\n!next -- skip the current song, and move to the following in the queue.\n!queue -- View the current queue of songs.\n!pause -- Pauses the currently playing song.\n!resume -- Resumes playback on the current song.\n\nCurrently, the projects underway include: Spotify compatibility, Soundcloud support, and world domination.\n\n\n\nView #jelly-documentation for information")
+    await ctx.send(f"Hey there {ctx.author}, I am Jellyfish 2!\n\nI can currently do the following:\n> !play 'query' -- search and play a song from YouTube; spotify compatibility is under construction. Also used to add songs to queue.\n> !stop -- stops whatever is currently playing, and exit the voice channel.\n> !next -- skip the current song, and move to the following in the queue.\n> !queue -- View the current queue of songs.\n> !pause -- Pauses the currently playing song.\n> !resume -- Resumes playback on the current song.\n> !volume -- control volume levels. Use an integer and no percent sign, I'll do the math.\n\nCurrently, the projects underway include: Spotify compatibility, Soundcloud support, and world domination.\n\n\n\nView #jelly-documentation for information")
 
 @client.command
 async def jellyfish(message):
@@ -287,6 +297,10 @@ def monitor_ram_usage():
     ANSI_RED = "\033[91m"
 
     while True:
+        print("System Check. Monitoring RAM usage, reporting uptime.")
+        tracked_time = time.time()
+        difference_runtime = tracked_time - initiated_time
+        get_time_hh_mm_ss(difference_runtime)
         check_no += 1
         print(f"\nRunning System util check - RAM || Check number: {check_no}\n")
         # Get the current RAM usage
@@ -294,6 +308,7 @@ def monitor_ram_usage():
         ram_used_mb = ram_info.rss / 1024 / 1024
 
         # Print the RAM usage
+
         print(f"RAM usage: ({ram_used_mb:.2f} MB)\n")
 
         # Check if RAM usage is close to the warning threshold
@@ -303,10 +318,10 @@ def monitor_ram_usage():
             print("RAM usage within acceptable thresholds...")
 
         # Sleep for a specific duration (e.g., 10 seconds)
-        time.sleep(30)
+        time.sleep(300)
 
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
 ram_monitor_thread.start()
-
+initiated_time = time.time()
 # Start the bot
 client.run(str(TOKEN))
