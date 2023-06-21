@@ -165,7 +165,7 @@ async def play(ctx, *args: str):
 
     except Exception as e: # Error handling printed to terminal and chat for thoroughness
         print(e)
-        await ctx.send("An Error occurred while trying to play the audio! Sorry.")
+        await ctx.send("An Error occurred while trying to play the audio! Sorry, please try again later.")
         await ctx.send(str(e))
 
     # Check if there are any songs in the queue
@@ -204,17 +204,17 @@ async def stop(ctx):
         ctx.voice_client.stop()
         await ctx.send("The playback has been stopped, and the current queue has been cleared.")
     else:
-        await ctx.send("Nothing is playing! I can't fix what isn't broken.")
+        await ctx.send("Nothing is playing!")
 
 @client.command()
 async def jellyhelp(ctx):
-    await ctx.send(f"Hey there {ctx.author}, I am Jellyfish 2!\n\nI can currently do the following:\n> !play 'query' -- search and play a song from YouTube; spotify compatibility is under construction. Also used to add songs to queue.\n> !stop -- stops whatever is currently playing, and exit the voice channel.\n> !next -- skip the current song, and move to the following in the queue.\n> !queue -- View the current queue of songs.\n> !pause -- Pauses the currently playing song.\n> !resume -- Resumes playback on the current song.\n> !volume -- control volume levels. Use an integer and no percent sign, I'll do the math.\n\nCurrently, the projects underway include: Spotify compatibility, Soundcloud support, and world domination.\n\n\n\nView #jelly-documentation for information")
+    await ctx.send(f"Hey there {ctx.author}, I am Jellyfish 2!\n\nI can currently do the following:\n> !play 'query' -- search and play a song from YouTube; spotify compatibility is under construction. Also used to add songs to queue.\n> !stop -- stops whatever is currently playing, and exit the voice channel.\n> !next -- skip the current song, and move to the following in the queue.\n> !queue -- View the current queue of songs.\n> !pause -- Pauses the currently playing song.\n> !resume -- Resumes playback on the current song.\n> !volume -- control volume levels. Use an integer and no percent sign, I'll do the math.\n> !devupdate -- manually request an update based on the latest github commit. (May require permissions)\n> !debugging -- something not working correctly? Try enabling debugging mode to see where it went wrong, then, submit a bug report in #jellyfish-bugs\n\nCurrently, the projects underway include: Spotify compatibility, Soundcloud support, and world domination.\n\nAdditional tools being worked on include event scheduling, server-moderation tools, and interactive chat features (ie. digital assistance)\n\n\n\nView #jelly-documentation for information")
 
 @client.command
 async def jellyfish(message):
     if message.author == client.user:
         return
-    print("prompt received.")
+    print("Prompt received.") # currently not operational; will repair
     response = openai.Completion.create(
         engine="gpt-3.5-turbo",
         prompt=message.content,
@@ -229,7 +229,7 @@ async def queue(ctx):
         queue_list = "\n".join(song_queue)
         await ctx.send(f"Current Queue:\n{queue_list}")
     else:
-        await ctx.send("There are no songs in the queue.")
+        await ctx.send("There are no songs in the queue; use !play 'query' to add a song to the queue.")
 
 @client.command()
 async def pause(ctx):
@@ -278,6 +278,7 @@ async def devupdate(ctx):
         latest_commit = repo.head.commit
         commit_description = latest_commit.message
         print("Latest commit description:", commit_description)
+        await ctx.send(f"Update description: {commit_description}")
         
         # discard local changes
         repo.git.reset('--hard')
@@ -329,11 +330,10 @@ def monitor_ram_usage():
         else:
             print("RAM usage within acceptable thresholds...")
 
-        # Sleep for a specific duration (e.g., 10 seconds)
+        # Sleep for a specific duration
         time.sleep(300)
 
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
 ram_monitor_thread.start()
 initiated_time = time.time()
-# Start the bot
 client.run(str(TOKEN))
