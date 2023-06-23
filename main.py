@@ -34,24 +34,25 @@ def update_check():
     remote = repo.remote()
     
     remote.fetch()  # Fetch the latest changes from the remote branch
+    remote_branch = remote.refs['origin/main']
     
-    if repo.head.commit != remote.refs['origin/main'].commit:
+    if repo.head.commit != remote_branch.commit:
         print("Update found, applying...")
 
         # Discard local changes
         repo.git.reset('--hard')
 
         # Pull changes from the remote branch
-        remote.pull()
+        remote.pull(remote_branch)
 
         # Get the latest commit
         latest_commit = repo.head.commit
         commit_description = latest_commit.message
         print("Latest commit description:", commit_description)
 
+
         # Restart the bot with the updated code
         subprocess.run(["python", "restart.py"])
-
     else:
         print("Version already up to date. Continuing...")
 
@@ -278,7 +279,9 @@ async def devupdate(ctx):
     
     remote.fetch()  # Fetch the latest changes from the remote branch
     
-    if repo.head.commit != remote.refs['origin/main'].commit:
+    remote_branch = remote.refs['origin/main']
+    
+    if repo.head.commit != remote_branch.commit:
         print("Update found, applying...")
         await ctx.send(f"Update found, applying.")
 
@@ -286,7 +289,7 @@ async def devupdate(ctx):
         repo.git.reset('--hard')
 
         # Pull changes from the remote branch
-        remote.pull()
+        remote.pull(remote_branch)
 
         # Get the latest commit
         latest_commit = repo.head.commit
@@ -300,6 +303,7 @@ async def devupdate(ctx):
     else:
         print("Version already up to date. Continuing...")
         await ctx.send(f"Version already up to date. No updates are required at this time.")
+
 
 
 @client.command()
