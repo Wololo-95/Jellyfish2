@@ -327,6 +327,14 @@ def monitor_ram_usage():
         # Sleep for a specific duration; this sets the intervals in which the bot will check ram usage and report uptime (in seconds)
         time.sleep(300)
 
+        # After a set amount of time (approximately 1000000 seconds, or just over 11.5 days), restart the bot; this helps to clear anything left in the cache, as well as apply pending updates that have not been manually applied.
+        if check_no >= 3334:   
+            print("Applying automatic restart; this should take only a few seconds.")
+            update_check()
+            sys_clean()
+            python = sys.executable
+            subprocess.run([python, "main.py"])
+
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
 ram_monitor_thread.start()
 initiated_time = time.time()
