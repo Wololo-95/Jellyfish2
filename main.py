@@ -31,13 +31,8 @@ openai.api_key = "OPEN_AI_TOKEN"
 def update_check():
     # initialize a GitPython Repo object for the current working directory
     repo = git.Repo('.')
-    # stash local changes
-    repo.git.stash()
-    # stage all untracked files
-    repo.git.add("--all")
-    # commit the changes
+
     repo.git.commit("-m", "Committing untracked files")
-    repo.git.clean("-fd")  # discard untracked files and directories
     # check if there are any changes on the remote branch
     if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
         print("Update found, applying...")
@@ -45,9 +40,7 @@ def update_check():
         repo.git.reset('--hard')
         # pull changes from the remote branch
         repo.remotes.origin.pull()
-        # apply the stashed changes back to the working tree
-        repo.git.stash.apply()
-        # get the latest commit
+
         latest_commit = repo.head.commit
         commit_description = latest_commit.message
         print("Latest commit description:", commit_description)
