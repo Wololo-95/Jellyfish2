@@ -31,15 +31,22 @@ openai.api_key = "OPEN_AI_TOKEN"
 def update_check():
     # initialize a GitPython Repo object for the current working directory
     repo = git.Repo('.')
+    # stash local changes
+    repo.git.stash()
+    # stage all untracked files
+    repo.git.add("--all")
+    # commit the changes
+    repo.git.commit("-m", "Committing untracked files")
+    repo.git.clean("-fd")  # discard untracked files and directories
     # check if there are any changes on the remote branch
     if repo.remotes.origin.fetch()[0].commit != repo.head.commit:
         print("Update found, applying...")
         # discard local changes
         repo.git.reset('--hard')
-
         # pull changes from the remote branch
         repo.remotes.origin.pull()
-
+        # apply the stashed changes back to the working tree
+        repo.git.stash.apply()
         # get the latest commit
         latest_commit = repo.head.commit
         commit_description = latest_commit.message
@@ -286,7 +293,7 @@ async def devupdate(ctx):
         time.sleep(8)
         # Restart the bot with the updated code
         python = sys.executable
-        subprocess.run([python, "restart.py"])
+        subprocess.run([python, "main.py"])
     else:
         print("Version already up to date. Continuing...")
         await ctx.send(f"Version already up to date. No updates are required at this time.")
@@ -333,7 +340,7 @@ def monitor_ram_usage():
             update_check()
             sys_clean()
             python = sys.executable
-            subprocess.run([python, "restart.py"])
+            subprocess.run([python, "main.py"])
 
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
 ram_monitor_thread.start()
