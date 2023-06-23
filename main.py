@@ -286,7 +286,7 @@ async def devupdate(ctx):
         time.sleep(8)
         # Restart the bot with the updated code
         python = sys.executable
-        subprocess.run([python, "main.py"])
+        subprocess.run([python, "restart.py"])
     else:
         print("Version already up to date. Continuing...")
         await ctx.send(f"Version already up to date. No updates are required at this time.")
@@ -333,7 +333,7 @@ def monitor_ram_usage():
             update_check()
             sys_clean()
             python = sys.executable
-            subprocess.run([python, "main.py"])
+            subprocess.run([python, "restart.py"])
 
 ram_monitor_thread = threading.Thread(target=monitor_ram_usage)
 ram_monitor_thread.start()
