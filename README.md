@@ -13,11 +13,19 @@ As of right now, Jellyfish DOES NOT support SoundCloud or Spotify, although thes
 Currently, there are several commands Jellyfish can accept.
 
 > !play 'query' - request download of a specific track. This can be a text description of the track you are seeking,or a direct link to a youtube video
+
 > !stop - end the current song, and clear the queue
+
 > !next - end the current song and begin playback of the next song
+
 > !pause - Pause playback
+
 > !resume - Resume paused playback
+
 > !queue - View current queue
+
 > !volume 'integer' - Take the value given as a percentage (0-100), and set the playback volume to that amount
+
 > !devupdate - Manually tell Jellyfish to look for new GitHub commits, and apply them, then restart
+
 > !debug - Enable debugging mode
